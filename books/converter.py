@@ -21,7 +21,7 @@ def merge_cbz_to_epub(manga: Manga, directory: str):
         if idx == 0:
             for filename in os.listdir(output_directory):
                 if filename.lower() == "comicinfo.xml":
-                    comic_info = ComicInfo(os.path.join(directory, filename))
+                    comic_info = ComicInfo(os.path.join(output_directory, filename))
                     author = comic_info.get_writer()
     
     epub_file = os.path.join(directory, manga.title.replace(" ","_") + ".epub")

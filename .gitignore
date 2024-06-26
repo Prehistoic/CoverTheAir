@@ -4,6 +4,7 @@ Pipfile*
 
 # Local data
 *.json
+*.log
 
 # Configuration file with potential sensitive information
 *.cfg
