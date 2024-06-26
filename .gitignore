@@ -2,8 +2,11 @@
 __pycache__/
 Pipfile*
 
-# Local "database"
+# Local data
 *.json
 
 # Configuration file with potential sensitive information
 *.cfg
+
+# Useless files
+TO_DO.md

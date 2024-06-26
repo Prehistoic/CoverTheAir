@@ -1,7 +1,16 @@
-# TO DO
+# Cover The Air
 
-- Implement a downloader for Lightnovels (or find one that works ?) + implement the methods in this repo
-- Implement a script to upload ebooks from my local PC to the Pi then implement the methods in this repo
+## Prerequisites
 
-- Create a GIT repo to save everything there
-- Replace the existing shortcuts to mangascraper to target this project !
+Has been tested with Python 3.9 and above
+You'll need to install required Python packages with pip :
+
+```
+pip install -r requirements
+```
+
+## Usage
+
+```
+python3 covertheair.py
+```
