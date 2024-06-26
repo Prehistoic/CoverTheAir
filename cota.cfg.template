@@ -1,0 +1,26 @@
+[general]
+application_name = CoverTheAir
+downloads_dir = downloads
+logfile = covertheair.log
+log_level = DEBUG
+
+[tracked_books]
+manga = mangas.json
+lightnovel = lightnovels.json
+ebook = ebooks.json
+
+[media_server]
+ip = 
+port = 
+username = 
+password = 
+path_to_mangas = 
+path_to_lightnovels = 
+path_to_ebooks = 
+
+[ebook_reader]
+ip = 
+port =
+username = 
+pkey = 
+base_path = 

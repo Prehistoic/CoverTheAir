@@ -1,0 +1,9 @@
+# Python build stuff
+__pycache__/
+Pipfile*
+
+# Local "database"
+*.json
+
+# Configuration file with potential sensitive information
+*.cfg
