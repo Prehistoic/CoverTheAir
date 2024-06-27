@@ -1,14 +1,9 @@
 import paramiko
 import traceback
-import os
 
 from config import (
     MEDIA_SERVER_IP, MEDIA_SERVER_PORT, MEDIA_SERVER_USERNAME, MEDIA_SERVER_PASSWORD, 
-    MEDIA_SERVER_PATH_TO_MANGAS, MEDIA_SERVER_PATH_TO_LIGHTNOVELS, MEDIA_SERVER_PATH_TO_EBOOKS,
-    DOWNLOADS_DIR)
-from books.models.manga import Manga
-from books.models.lightnovel import Lightnovel
-from books.models.ebook import Ebook
+    MEDIA_SERVER_PATH_TO_MANGAS, MEDIA_SERVER_PATH_TO_LIGHTNOVELS, MEDIA_SERVER_PATH_TO_EBOOKS)
 from utils.log import Log
 
 class MediaServer:

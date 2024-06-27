@@ -4,7 +4,6 @@ import os
 from rich.progress import Progress
 
 from config import EBOOK_READER_IP, EBOOK_READER_PORT, EBOOK_READER_PKEY_FILE, EBOOK_READER_USERNAME, EBOOK_READER_BASE_PATH
-from cli.prettyfy import pprint
 from utils.log import Log
 
 class EbookReader:

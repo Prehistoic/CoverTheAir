@@ -5,7 +5,7 @@ import os
 import json
 import shutil
 
-from cli.prettyfy import pprint
+from cli import Cli
 from connectivity.media_server import MediaServer
 from connectivity.ebook_reader import EbookReader
 from books.models.manga import Manga
@@ -52,7 +52,7 @@ class BookManager:
         self.get_tracked_ebooks()
 
     def update_books(self):
-        pprint("Syncing databases with media server, please wait...")
+        Cli.print("Syncing databases with media server, please wait...")
         Log.info("Syncing books info with media server")
 
         self.update_mangas_info()
@@ -76,7 +76,7 @@ class BookManager:
             elif os.path.isdir(item_path):
                 shutil.rmtree(item_path)
 
-        pprint(f"Thanks for using {APPLICATION_NAME}, see you soon !") if not failure else pprint("Something went wrong, exiting :(")
+        Cli.print(f"Thanks for using {APPLICATION_NAME}, see you soon !") if not failure else Cli.print("Something went wrong, exiting :(")
 
     def get_book_by_title(self, title: str, category: str):
         for book in getattr(self, "tracked_" + category.lower()):
