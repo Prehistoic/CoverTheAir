@@ -1,9 +1,11 @@
 import paramiko
 import traceback
+import os
 
 from config import (
     MEDIA_SERVER_IP, MEDIA_SERVER_PORT, MEDIA_SERVER_USERNAME, MEDIA_SERVER_PASSWORD, 
-    MEDIA_SERVER_PATH_TO_MANGAS, MEDIA_SERVER_PATH_TO_LIGHTNOVELS, MEDIA_SERVER_PATH_TO_EBOOKS)
+    MEDIA_SERVER_PATH_TO_MANGAS, MEDIA_SERVER_PATH_TO_LIGHTNOVELS, MEDIA_SERVER_PATH_TO_EBOOKS,
+    SUPPORTED_EBOOK_FORMATS)
 from utils.log import Log
 
 class MediaServer:
@@ -68,7 +70,7 @@ class MediaServer:
             for downloaded_manga in downloaded_mangas:
                 mangas_in_media_server.append({"title": downloaded_manga, "source": source})
 
-        Log.info("Found mangas : " + ", ".join([manga["title"] for manga in mangas_in_media_server]))
+        Log.debug("Found mangas : " + ", ".join([manga["title"] for manga in mangas_in_media_server]))
 
         return mangas_in_media_server
 
@@ -91,12 +93,57 @@ class MediaServer:
     ######### LIGHTNOVELS #########
 
     def list_lightnovels(self):
-        pass
+        Log.info("Retrieving lightnovels from media server")
+
+        lightnovels_in_media_server = [{"title": directory_name} for directory_name in self.sftp.listdir(MEDIA_SERVER_PATH_TO_LIGHTNOVELS)]
+
+        Log.debug("Found lightnovels : " + ", ".join([lightnovel["title"] for lightnovel in lightnovels_in_media_server]))
+
+        return lightnovels_in_media_server
 
     def list_lightnovel_chapters(self, lightnovel_title: str):
-        pass
+        Log.debug(f"Retrieving chapters from {lightnovel_title}")
+        
+        chapters = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_LIGHTNOVELS + "/" + lightnovel_title) if file.endswith(".epub")]
+        
+        Log.debug(f"Found {len(chapters)} chapters for {lightnovel_title}")
+        
+        return chapters
+
+    def download_lightnovel_chapter(self, lightnovel_title: str, chapter_name: str, target_dir: str):
+        Log.debug(f"Downloading {chapter_name} for {lightnovel_title} [target_dir = {target_dir}]")
+        
+        source_path = MEDIA_SERVER_PATH_TO_LIGHTNOVELS + "/" + lightnovel_title + "/" + chapter_name
+        target_path = target_dir + "/" + chapter_name
+        self.get(source_path, target_path)
 
     ######### EBOOKS #########
 
     def list_ebooks(self):
-        pass
+        Log.info("Retrieving ebooks from media server")
+
+        ebooks = []
+
+        ebook_files = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_EBOOKS) if file.split(".")[-1] in SUPPORTED_EBOOK_FORMATS]
+        for ebook_file in ebook_files:
+            ebook_title = ebook_file.split(".")[0]
+            ebook_filetype = ebook_file.split(".")[-1]
+            ebooks.append({"title": ebook_title, "filetype": ebook_filetype})
+
+        Log.debug("Found ebooks : " + ", ".join([ebook["title"] for ebook in ebooks]))
+
+        return ebooks
+
+    def upload_ebook(self, ebook_path: str):
+        Log.debug(f"Uploading {ebook_path}")
+
+        source_path = ebook_path
+        target_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + os.path.basename(ebook_path)
+        self.put(source_path, target_path)
+
+    def download_ebook(self, ebook_title: str, ebook_filetype: str, target_dir: str):
+        Log.debug(f"Downloading {ebook_title} [target_dir = {target_dir}]")
+
+        source_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + ebook_title + "." + ebook_filetype
+        target_path = target_dir + "/" + ebook_title + "." + ebook_filetype
+        self.get(source_path, target_path)

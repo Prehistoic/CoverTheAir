@@ -12,8 +12,11 @@ settings.read(CONFIG_FILE)
 # GENERAL
 APPLICATION_NAME = settings.get("general", "application_name")
 DOWNLOADS_DIR = store_in_data_folder(settings.get("general", "downloads_dir"))
+LOCAL_UPLOADS_DIR = settings.get("general", "local_uploads_dir")
 LOGFILE = store_in_data_folder(settings.get("general", "logfile"))
 LOG_LEVEL = settings.get("general", "log_level")
+
+SUPPORTED_EBOOK_FORMATS = ["epub", "pdf"]
 
 # TRACKED BOOKS
 TRACKED_MANGAS_FILE = store_in_data_folder(settings.get("tracked_books", "manga"))

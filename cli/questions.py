@@ -1,9 +1,11 @@
 from typing import List, Union
+import os
 
 from books.models.manga import Manga
 from books.models.lightnovel import Lightnovel
 from books.models.ebook import Ebook
 from cli import Cli, Separator
+from config import SUPPORTED_EBOOK_FORMATS, LOCAL_UPLOADS_DIR
 
 def main_menu():
     question = "Which type of books do you want to see ?"
@@ -17,15 +19,7 @@ def main_menu():
 
     return Cli.select(question, choices, newline_after_question=True)
 
-def books_menu(books: Union[List[Manga], List[Lightnovel], List[Ebook]], book_type: str):
-    if book_type == "mangas":
-        return mangas_menu(books)
-    elif book_type == "lightnovels":
-        return lightnovels_menu(books)
-    else:
-        return ebooks_menu(books)
-
-def mangas_menu(mangas: List[Manga]):
+def choose_manga(mangas: List[Manga]):
     question = "==== MANGAS ===="
     choices = []
 
@@ -40,12 +34,12 @@ def mangas_menu(mangas: List[Manga]):
 
     return Cli.select(question, choices, newline_after_question=True)
 
-def lightnovels_menu(lightnovels: List[Lightnovel]):
+def choose_lightnovel(lightnovels: List[Lightnovel]):
     question = "==== LIGHTNOVELS ===="
     choices = []
 
     for lightnovel in lightnovels:
-        entry = {"name": "{0:60.60}".format(lightnovel.title) + 5 * " " + f"{lightnovel.last_read_chapter}/{len(lightnovel.chapters)}"}
+        entry = "{0:60.60}".format(lightnovel.title) + 5 * " " + f"{lightnovel.last_read_chapter}/{len(lightnovel.chapters)}"
         choices.append(entry)
 
     if not choices:
@@ -55,19 +49,19 @@ def lightnovels_menu(lightnovels: List[Lightnovel]):
 
     return Cli.select(question, choices, newline_after_question=True)
 
-def ebooks_menu(ebooks: List[Ebook]):
+def choose_ebook(ebooks: List[Ebook]):
     question = "==== EBOOKS ===="
     choices = []
 
     for ebook in ebooks:
         read_status = "[READ]" if ebook.read else "[NOT READ]"
-        entry = {"name": "{0:60.60}".format(ebook.title) + 5 * " " + f"{read_status}"}
+        entry = "{0:60.60}".format(ebook.title) + 5 * " " + f"{read_status}"
         choices.append(entry)
 
     if not choices:
         question += "\n\n" + "No ebook found :("
 
-    choices.extend([Separator(), "Back"])
+    choices.extend([Separator(), "Upload local ebook to Media Server", Separator(), "Back"])
 
     return Cli.select(question, choices, newline_after_question=True)
 
@@ -92,6 +86,14 @@ def choose_action_for_ebook():
     ]
 
     return Cli.select(question, choices, newline_after_question=True)
+
+def choose_local_ebook_to_upload():
+    question = f"Please provide the name of the ebook to upload\nWARNING : it has to be in {LOCAL_UPLOADS_DIR}"
+    validator = lambda f: os.path.isfile(os.path.join(LOCAL_UPLOADS_DIR, f)) and f.split(".")[-1] in SUPPORTED_EBOOK_FORMATS
+    failed_validator_msg = "Provided path is not a valid ebook !"
+    
+    ebook_file = Cli.prompt(question, validator=validator, failed_validator_msg=failed_validator_msg)
+    return os.path.join(LOCAL_UPLOADS_DIR, ebook_file) if ebook_file else None
 
 def modify_last_chapter_read(book: Union[Manga, Lightnovel]):
     question = f"What\'s the last chapter you read (current one saved is {book.last_read_chapter})"

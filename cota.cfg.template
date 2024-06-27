@@ -1,6 +1,7 @@
 [general]
 application_name = CoverTheAir
 downloads_dir = downloads
+local_uploads_dir = 
 logfile = covertheair.log
 log_level = DEBUG
 
