@@ -1,7 +1,7 @@
 import configparser
 import os
 
-CONFIG_FILE = "cota.cfg"
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "cota.cfg")
 
 def store_in_data_folder(filename: str):
     return os.path.join(os.path.dirname(__file__), "data", filename)
