@@ -36,7 +36,7 @@ class Cli:
             return value
     
     @classmethod
-    def select(self, question: str, choices: List[str], cursor: str = "🢧", cursor_style: str = "pink1", newline_after_question: bool = False):
+    def select(self, question: str, choices: List[str], cursor: str = "🢧", cursor_style: str = "pink1", pagination: bool = False, page_size: int = 5, newline_after_question: bool = False):
         # First we remove every Separator instances and instead add a space to the line before... that's a quick hack because beaupy doesn't support newlines :(
         for idx, choice in enumerate(choices):
             if isinstance(choice, Separator):
@@ -47,7 +47,7 @@ class Cli:
         self.prettyfy()
         
         Console().print(question) if not newline_after_question else Console().print(question + "\n")
-        choice = beaupy.select(choices, cursor=cursor, cursor_style=cursor_style)
+        choice = beaupy.select(choices, cursor=cursor, cursor_style=cursor_style, pagination=pagination, page_size=page_size)
 
         # Again doing this as an odd hack to be able to add newlines in the choices...
         if type(choice) == str:
