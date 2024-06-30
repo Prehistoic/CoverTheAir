@@ -195,7 +195,7 @@ class LightnovelManager:
             downloaded_chapters_folder = self.download_chapters_from_media_server(lightnovel, chapters_to_download_count)
 
             if downloaded_chapters_folder:
-                epub_file = Converter.merge_epub_to_epub(lightnovel, downloaded_chapters_folder)
+                epub_file = Converter.merge_epubs_to_epub(lightnovel, downloaded_chapters_folder)
 
                 if epub_file:
                     success = self.upload_to_reader(lightnovel, epub_file)
