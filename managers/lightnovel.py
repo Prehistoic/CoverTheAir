@@ -27,7 +27,7 @@ class LightnovelManager:
         if os.stat(TRACKED_LIGHTNOVELS_FILE).st_size != 0:
             data = json.load(open(TRACKED_LIGHTNOVELS_FILE, "r"))
             for entry in data["lightnovels"]:
-                lightnovel = Lightnovel(entry["title"], entry["source"], entry["chapters"], entry["last_read_chapter"])
+                lightnovel = Lightnovel(entry["title"], entry["chapters"], entry["last_read_chapter"])
                 self.tracked_lightnovels.append(lightnovel)
 
     #### ACTIONS ####

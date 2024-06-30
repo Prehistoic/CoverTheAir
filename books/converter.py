@@ -1,6 +1,7 @@
 import os
 import traceback
-from ebooklib import epub, ITEM_DOCUMENT
+from rich.progress import Progress
+from ebooklib import epub, ITEM_DOCUMENT, ITEM_COVER
 
 from books.models.manga import Manga
 from books.models.lightnovel import Lightnovel
@@ -45,7 +46,7 @@ class Converter:
             Log.error(f"Failed to merge .cbz files from {directory} to .epub", traceback.format_exc())
             epub_file = None
             
-        print(" ") if epub_file else print("\n[-] Something went wrong when merging files to .epub !")
+        print(" ") if not epub_file else print("\n[-] Something went wrong when merging files to .epub !")
         return epub_file
     
     @classmethod
@@ -54,39 +55,90 @@ class Converter:
             merged_epub = epub.EpubBook()
             merged_epub.set_title(lightnovel.title)
 
+            style = '''
+    
+            h2 {
+                text-align: center;
+                font-size: 100px;
+                font-family: Tahoma, Geneva, sans-serif;
+            }
+
+            p { 
+                font-size: 50px; 
+                font-family: Tahoma, Geneva, sans-serif;
+            }
+            
+            '''
+            default_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
+            merged_epub.add_item(default_css)
+
             # Initialize the merged content list
-            merged_content = []
+            chapters = []
+            toc = []
 
             # Loop through all files in the directory
-            for filename in os.listdir(directory):
-                if filename.endswith(".epub"):
+            merged_epub_got_cover = False
+            merged_epub_got_author = False
+            chapter_id = 0
+            
+            with Progress() as progress:
+
+                epub_files = [file for file in os.listdir(directory) if file.endswith(".epub")]
+
+                progress_bar_length = len(epub_files) * 100 + 100
+                task = progress.add_task(f"[red]Merging EPUBs from {directory}...", total=progress_bar_length)
+
+                for idx, filename in enumerate(epub_files):
                     epub_path = os.path.join(directory, filename)
-                    book = epub.read_epub(epub_path)
+                    book = epub.read_epub(name=epub_path, options={"ignore_ncx": True})
 
-                    # Add all items (content) from the current book to the merged book
+                    # Retrieving the author from the first .epub
+                    if not merged_epub_got_author:
+                        try:
+                            creator_metadata = book.get_metadata(namespace="DC", name="creator")
+                            author = creator_metadata[0][0]
+                            merged_epub.add_author(author)
+                            merged_epub_got_author = True
+                        except:
+                            pass
+
                     for item in book.get_items():
-                        if item.get_type() == ITEM_DOCUMENT:
-                            merged_content.append(item)
-                            merged_epub.add_item(item)
+                        # Retrieving every chapter
+                        if item.get_type() == ITEM_DOCUMENT and item.get_name().startswith("Chapter "):
+                            chapter_id += 1
 
-                if filename.split(".")[-1] in ["jpg", "jpeg", "png"]:
-                    image_path = os.path.join(directory, filename)
-                    with open(image_path, "rb") as img_file:
-                        cover_data = img_file.read()
-                        
-                    merged_epub.set_cover("cover.jpg", cover_data)
+                            chapter = epub.EpubHtml(
+                                uid=f"chapter_{chapter_id}",
+                                file_name=item.get_name(),
+                                content=item.get_content()
+                            )
 
-            # Create the spine and TOC
-            merged_epub.toc = (epub.Link(item.file_name, item.get_name(), item.get_id()) for item in merged_content)
-            merged_epub.spine = ['nav'] + merged_content
+                            # Making sure the text is formatted correctly
+                            chapter.add_item(default_css)
+                            
+                            merged_epub.add_item(chapter)
+                            chapters.append(chapter)
+                            toc.append(epub.Link(chapter.get_name(), chapter.get_name().split(".")[0], chapter.get_id()))
 
-            # Add default NCX and Nav file
-            merged_epub.add_item(epub.EpubNcx())
-            merged_epub.add_item(epub.EpubNav())
+                        # Retrieving the cover from the first .epub
+                        elif item.get_type() == ITEM_COVER and not merged_epub_got_cover:
+                            merged_epub.set_cover(item.get_name(), item.get_content())
+                            merged_epub_got_cover = True
+                    
+                    # Updating progress
+                    progress.advance(task, advance=idx * 100)
 
-            # Write the merged EPUB to the output file
-            epub_file = os.path.join(directory, lightnovel.title.replace(" ","_") + ".epub")
-            epub.write_epub(epub_file, merged_epub, {})
+                # Create the spine, ncx, nav and TOC
+                merged_epub.toc = tuple(toc)
+                merged_epub.add_item(epub.EpubNcx())
+                merged_epub.add_item(epub.EpubNav())
+                merged_epub.spine = chapters            
+
+                # Write the merged EPUB to the output file
+                epub_file = os.path.join(directory, lightnovel.title + ".epub")
+                epub.write_epub(name=epub_file, book=merged_epub)
+
+                progress.advance(task, advance=100)
         
         except Exception:
             Log.error(f"Failed to merge .epub files from {directory} to .epub", traceback.format_exc())
