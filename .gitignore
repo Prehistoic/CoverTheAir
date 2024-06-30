@@ -3,6 +3,7 @@ __pycache__/
 Pipfile*
 
 # Local data
+data/downloads/
 *.json
 *.log
 
