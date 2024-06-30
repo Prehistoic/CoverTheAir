@@ -95,6 +95,10 @@ def choose_local_ebook_to_upload():
     ebook_file = Cli.prompt(question, validator=validator, failed_validator_msg=failed_validator_msg)
     return os.path.join(LOCAL_UPLOADS_DIR, ebook_file) if ebook_file else None
 
+def choose_series():
+    question = f"Please provide the name of the series this book belongs to"
+    return Cli.prompt(question)
+
 def modify_last_chapter_read(book: Union[Manga, Lightnovel]):
     question = f"What\'s the last chapter you read (current one saved is {book.last_read_chapter})"
     validator = lambda val: 0 <= val <= len(book.chapters)

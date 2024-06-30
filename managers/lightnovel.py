@@ -29,6 +29,7 @@ class LightnovelManager:
             for entry in data["lightnovels"]:
                 lightnovel = Lightnovel(entry["title"], entry["chapters"], entry["last_read_chapter"])
                 self.tracked_lightnovels.append(lightnovel)
+                self.tracked_lightnovels = sorted(self.tracked_lightnovels, key=lambda lightnovel: lightnovel.title)
 
     #### ACTIONS ####
 

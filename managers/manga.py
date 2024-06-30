@@ -29,6 +29,7 @@ class MangaManager:
             for entry in data["mangas"]:
                 manga = Manga(entry["title"], entry["source"], entry["chapters"], entry["last_read_chapter"])
                 self.tracked_mangas.append(manga)
+                self.tracked_mangas = sorted(self.tracked_mangas, key=lambda manga: manga.title)
 
     #### ACTIONS ####
 

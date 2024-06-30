@@ -54,6 +54,15 @@ class MediaServer:
         except Exception:
             Log.error(f"SFTP GET {source_path} (SERVER) => {target_path} (HOST)", traceback.format_exc())
             return False
+        
+    def mkdir(self, path: str):
+        try:
+            self.sftp.mkdir(path)
+            Log.debug(f"SFTP MKDIR {path}")
+            return True
+        except Exception:
+            Log.error(f"SFTP MKDIR {path}", traceback.format_exc())
+            return False
 
     ######### MANGAS #########
 
@@ -71,7 +80,7 @@ class MediaServer:
                 mangas_in_media_server.append({"title": downloaded_manga, "source": source})
 
         Log.debug("Found mangas : " + ", ".join([manga["title"] for manga in mangas_in_media_server]))
-
+        
         return mangas_in_media_server
 
     def list_manga_chapters(self, manga_title: str, manga_source: str):
@@ -107,7 +116,7 @@ class MediaServer:
         chapters = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_LIGHTNOVELS + "/" + lightnovel_title) if file.endswith(".epub")]
         
         Log.debug(f"Found {len(chapters)} chapters for {lightnovel_title}")
-        
+
         return chapters
 
     def download_lightnovel_chapter(self, lightnovel_title: str, chapter_name: str, target_dir: str):
@@ -124,26 +133,32 @@ class MediaServer:
 
         ebooks = []
 
-        ebook_files = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_EBOOKS) if file.split(".")[-1] in SUPPORTED_EBOOK_FORMATS]
-        for ebook_file in ebook_files:
-            ebook_title = ebook_file.split(".")[0]
-            ebook_filetype = ebook_file.split(".")[-1]
-            ebooks.append({"title": ebook_title, "filetype": ebook_filetype})
+        series_found_in_media_server = self.sftp.listdir(MEDIA_SERVER_PATH_TO_EBOOKS)
+        Log.debug("Found series : " + ", ".join(series_found_in_media_server))
 
-        Log.debug("Found ebooks : " + ", ".join([ebook["title"] for ebook in ebooks]))
+        for series in series_found_in_media_server:
+            ebook_files = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_EBOOKS + "/" + series) if file.split(".")[-1] in SUPPORTED_EBOOK_FORMATS]
+            for ebook_file in ebook_files:
+                ebook_title = ebook_file.split(".")[0]
+                ebook_filetype = ebook_file.split(".")[-1]
+                ebooks.append({"title": ebook_title, "series": series, "filetype": ebook_filetype})
+
+            Log.debug("Found ebooks : " + ", ".join([ebook["title"] for ebook in ebooks]))
 
         return ebooks
 
-    def upload_ebook(self, ebook_path: str):
+    def upload_ebook(self, ebook_path: str, series: str):
         Log.debug(f"Uploading {ebook_path}")
 
         source_path = ebook_path
-        target_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + os.path.basename(ebook_path)
+        target_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + series + "/" + os.path.basename(ebook_path)
+
+        self.mkdir(MEDIA_SERVER_PATH_TO_EBOOKS + "/" + series)
         self.put(source_path, target_path)
 
-    def download_ebook(self, ebook_title: str, ebook_filetype: str, target_dir: str):
+    def download_ebook(self, ebook_title: str, ebook_filetype: str, ebook_series: str, target_dir: str):
         Log.debug(f"Downloading {ebook_title} [target_dir = {target_dir}]")
 
-        source_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + ebook_title + "." + ebook_filetype
-        target_path = target_dir + "/" + ebook_title + "." + ebook_filetype
+        source_path = MEDIA_SERVER_PATH_TO_EBOOKS + "/" + ebook_series + "/" + f"{ebook_title}.{ebook_filetype}"
+        target_path = target_dir + "/" + f"{ebook_title}.{ebook_filetype}"
         self.get(source_path, target_path)

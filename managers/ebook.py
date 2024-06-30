@@ -8,7 +8,7 @@ from books.models.ebook import Ebook
 from connectivity.media_server import MediaServer
 from connectivity.ebook_reader import EbookReader
 from cli import Cli
-from cli.questions import choose_ebook, choose_action_for_ebook, choose_local_ebook_to_upload, modify_read_status
+from cli.questions import choose_ebook, choose_action_for_ebook, choose_local_ebook_to_upload, modify_read_status, choose_series
 from utils.log import Log
 
 from config import TRACKED_EBOOKS_FILE, DOWNLOADS_DIR
@@ -26,8 +26,9 @@ class EbookManager:
         if os.stat(TRACKED_EBOOKS_FILE).st_size != 0:
             data = json.load(open(TRACKED_EBOOKS_FILE, "r"))
             for entry in data["ebooks"]:
-                ebook = Ebook(entry["title"], entry["read"], entry["filetype"])
+                ebook = Ebook(entry["title"], entry["series"], entry["read"], entry["filetype"])
                 self.tracked_ebooks.append(ebook)
+                self.tracked_ebooks = sorted(self.tracked_ebooks, key=lambda ebook: ebook.title)
 
     def update(self):
         media_server = MediaServer()
@@ -52,6 +53,7 @@ class EbookManager:
                 if downloaded_ebook["title"] not in tracked_ebooks_titles:
                     new_tracked_ebook = Ebook(
                         title=downloaded_ebook["title"],
+                        series=downloaded_ebook["series"],
                         filetype=downloaded_ebook["filetype"]
                     )
                     self.tracked_ebooks.append(new_tracked_ebook)
@@ -76,12 +78,12 @@ class EbookManager:
                 progress_bar_length = 1000
                 task = progress.add_task(f"[red]Downloading {ebook.title}...", total=progress_bar_length)
 
-                media_server.download_ebook(ebook.title, ebook.filetype, DOWNLOADS_DIR)
+                media_server.download_ebook(ebook.title, ebook.filetype, ebook.series, DOWNLOADS_DIR)
                 progress.update(task, advance=progress_bar_length)
 
             media_server.disconnect()
 
-            downloaded_ebook = os.path.join(DOWNLOADS_DIR, ebook.title + "." + ebook.filetype)
+            downloaded_ebook = os.path.join(DOWNLOADS_DIR, f"{ebook.title}.{ebook.filetype}")
         except:
             Log.error(f"Failed to download {ebook.title}", traceback.format_exc())
             downloaded_ebook = None
@@ -91,19 +93,19 @@ class EbookManager:
         print(" ") if downloaded_ebook else print("\n[-] Something went wrong when downloading ebook !")
         return downloaded_ebook
 
-    def upload_to_media_server(self, path: str):
+    def upload_to_media_server(self, ebook_path: str, ebook_series: str):
         media_server = MediaServer()
         media_server.connect()
 
         try:
-            Log.info(f"Uploading {path} to Media Server...")
-            Cli.print(f"Uploading {path} to Media Server... ", end="")
+            Log.info(f"Uploading {ebook_path} to Media Server...")
+            Cli.print(f"Uploading {ebook_path} to Media Server... ", end="")
 
-            media_server.upload_ebook(path)
+            media_server.upload_ebook(ebook_path, ebook_series)
 
             print("done")
         except Exception:
-            Log.error(f"Failed to upload {path} to Media Server", traceback.format_exc())
+            Log.error(f"Failed to upload {ebook_path} to Media Server", traceback.format_exc())
             print("error")
         
         media_server.disconnect()
@@ -132,6 +134,7 @@ class EbookManager:
         for ebook in self.tracked_ebooks:
             entry = {
                 "title": ebook.title,
+                "series": ebook.series,
                 "read": ebook.read,
                 "filetype": ebook.filetype,
                 "missing": ebook.missing
@@ -157,7 +160,9 @@ class EbookManager:
             elif chosen_ebook == "Upload local ebook to Media Server":
                 local_path = choose_local_ebook_to_upload()
                 if local_path:
-                    self.upload_to_media_server(local_path)
+                    series = choose_series()
+                    self.upload_to_media_server(local_path, series)
+                    self.update()
 
             else:
                 ebook_title = chosen_ebook[0:60].strip()
