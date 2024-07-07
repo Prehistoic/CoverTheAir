@@ -46,7 +46,7 @@ class Converter:
             Log.error(f"Failed to merge .cbz files from {directory} to .epub", traceback.format_exc())
             epub_file = None
             
-        print(" ") if not epub_file else print("\n[-] Something went wrong when merging files to .epub !")
+        print(" ") if epub_file else print("\n[-] Something went wrong when merging files to .epub !")
         return epub_file
     
     @classmethod
