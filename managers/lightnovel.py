@@ -179,7 +179,7 @@ class LightnovelManager:
         
         if action == "Modify last chapter read":
             last_read_chapter = modify_last_chapter_read(lightnovel)
-            if last_read_chapter:
+            if last_read_chapter is not None:
                 lightnovel.last_read_chapter = last_read_chapter
                 Log.debug(f"Modified {lightnovel.title} last read chapter to {last_read_chapter}")
 
