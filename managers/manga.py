@@ -182,7 +182,7 @@ class MangaManager:
         
         if action == "Modify last chapter read":
             last_read_chapter = modify_last_chapter_read(manga)
-            if last_read_chapter:
+            if last_read_chapter is not None:
                 manga.last_read_chapter = last_read_chapter
                 Log.debug(f"Modified {manga.title} last read chapter to {last_read_chapter}")
 
