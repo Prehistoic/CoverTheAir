@@ -139,7 +139,7 @@ class MediaServer:
         for series in series_found_in_media_server:
             ebook_files = [file for file in self.sftp.listdir(MEDIA_SERVER_PATH_TO_EBOOKS + "/" + series) if file.split(".")[-1] in SUPPORTED_EBOOK_FORMATS]
             for ebook_file in ebook_files:
-                ebook_title = ebook_file.split(".")[0]
+                ebook_title = ".".join(ebook_file.split(".")[0:-1])
                 ebook_filetype = ebook_file.split(".")[-1]
                 ebooks.append({"title": ebook_title, "series": series, "filetype": ebook_filetype})
 
