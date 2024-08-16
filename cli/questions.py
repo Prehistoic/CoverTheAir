@@ -49,8 +49,30 @@ def choose_lightnovel(lightnovels: List[Lightnovel]):
 
     return Cli.select(question, choices, newline_after_question=True)
 
-def choose_ebook(ebooks: List[Ebook]):
-    question = "==== EBOOKS ===="
+def choose_series(ebooks: List[Ebook]):
+    question = "==== SERIES ===="
+    choices = []
+
+    available_series = {}
+    for ebook in ebooks:
+        if ebook.series not in available_series:
+            available_series[ebook.series] = [ebook]
+        else:
+            available_series[ebook.series].append(ebook)
+
+    for serie in available_series.keys():
+        entry = "{0:60.60}".format(serie)
+        choices.append(entry)
+
+    if not choices:
+        question += "\n\n" + "No series found :("
+
+    choices.extend([Separator(), "Upload local ebook to Media Server", Separator(), "Back"])
+
+    return available_series, Cli.select(question, choices, newline_after_question=True, pagination=True, page_size=20)
+
+def choose_ebook(serie: str, ebooks: List[Ebook]):
+    question = f"==== {serie.upper()} ===="
     choices = []
 
     for ebook in ebooks:
@@ -61,9 +83,9 @@ def choose_ebook(ebooks: List[Ebook]):
     if not choices:
         question += "\n\n" + "No ebook found :("
 
-    choices.extend([Separator(), "Upload local ebook to Media Server", Separator(), "Back"])
+    choices.extend([Separator(), "Back"])
 
-    return Cli.select(question, choices, newline_after_question=True)
+    return Cli.select(question, choices, newline_after_question=True, pagination=True, page_size=20)
 
 def choose_action_for_manga_or_lightnovel():
     question = "What do you want to do ?"
@@ -95,7 +117,7 @@ def choose_local_ebook_to_upload():
     ebook_file = Cli.prompt(question, validator=validator, failed_validator_msg=failed_validator_msg)
     return os.path.join(LOCAL_UPLOADS_DIR, ebook_file) if ebook_file else None
 
-def choose_series():
+def input_serie():
     question = f"Please provide the name of the series this book belongs to"
     return Cli.prompt(question)
 

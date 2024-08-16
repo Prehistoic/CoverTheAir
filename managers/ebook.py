@@ -8,7 +8,7 @@ from books.models.ebook import Ebook
 from connectivity.media_server import MediaServer
 from connectivity.ebook_reader import EbookReader
 from cli import Cli
-from cli.questions import choose_ebook, choose_action_for_ebook, choose_local_ebook_to_upload, modify_read_status, choose_series
+from cli.questions import choose_ebook, choose_action_for_ebook, choose_local_ebook_to_upload, modify_read_status, input_serie, choose_series
 from utils.log import Log
 
 from config import TRACKED_EBOOKS_FILE, DOWNLOADS_DIR
@@ -147,34 +147,44 @@ class EbookManager:
     #### MENUS ####
 
     def book_choice_menu(self):
-        stay_in_menu = True
+        stay_in_series_menu = True
 
-        while stay_in_menu:
+        while stay_in_series_menu:
 
             # User chooses an ebook in the list of displayed tracked ebooks
-            chosen_ebook = choose_ebook(self.tracked_ebooks)
+            available_series, chosen_series = choose_series(self.tracked_ebooks)
 
-            if chosen_ebook == "Back":
-                stay_in_menu = False
+            if chosen_series == "Back":
+                stay_in_series_menu = False
 
-            elif chosen_ebook == "Upload local ebook to Media Server":
+            elif chosen_series == "Upload local ebook to Media Server":
                 local_path = choose_local_ebook_to_upload()
                 if local_path:
-                    series = choose_series()
+                    series = input_serie()
                     self.upload_to_media_server(local_path, series)
                     self.update()
 
             else:
-                ebook_title = chosen_ebook[0:60].strip()
-                ebook = next((tracked_ebook for tracked_ebook in self.tracked_ebooks if tracked_ebook.title == ebook_title), None)
-    
-                if not ebook:
-                    Log.warning(f"Could not find {ebook_title}")
-                    Cli.print(f"Could not find {ebook_title}...")
-                    input("Go back to main menu")
+                series_to_browse = chosen_series[0:60].strip()
 
-                else:
-                    self.book_action_menu(ebook)
+                stay_in_book_menu = True
+
+                while stay_in_book_menu:
+                    chosen_ebook = choose_ebook(series_to_browse, available_series[series_to_browse])
+
+                    if chosen_ebook == "Back":
+                        stay_in_book_menu = False
+
+                    else:
+                        ebook_title = chosen_ebook[0:60].strip()
+                        ebook = next((tracked_ebook for tracked_ebook in self.tracked_ebooks if tracked_ebook.title == ebook_title), None)
+            
+                        if not ebook:
+                            Log.warning(f"Could not find {ebook_title}")
+                            Cli.print(f"Could not find {ebook_title}...")
+                            input("Go back to main menu")
+                        else:
+                            self.book_action_menu(ebook)
 
     def book_action_menu(self, ebook: Ebook):
         action = choose_action_for_ebook()
