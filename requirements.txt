@@ -3,3 +3,5 @@ beaupy==3.8.2
 rich==13.7.1
 paramiko==3.4.0
 EbookLib==0.18
+pillow==11.1.0
+Jinja2==3.1.5
