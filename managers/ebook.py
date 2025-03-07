@@ -26,9 +26,10 @@ class EbookManager:
         if os.stat(TRACKED_EBOOKS_FILE).st_size != 0:
             data = json.load(open(TRACKED_EBOOKS_FILE, "r"))
             for entry in data["ebooks"]:
-                ebook = Ebook(entry["title"], entry["series"], entry["read"], entry["filetype"])
-                self.tracked_ebooks.append(ebook)
-                self.tracked_ebooks = sorted(self.tracked_ebooks, key=lambda ebook: ebook.title)
+                if not entry["missing"]:
+                    ebook = Ebook(entry["title"], entry["series"], entry["read"], entry["filetype"])
+                    self.tracked_ebooks.append(ebook)
+                    self.tracked_ebooks = sorted(self.tracked_ebooks, key=lambda ebook: ebook.title)
 
     def update(self):
         media_server = MediaServer()

@@ -27,9 +27,10 @@ class MangaManager:
         if os.stat(TRACKED_MANGAS_FILE).st_size != 0:
             data = json.load(open(TRACKED_MANGAS_FILE, "r"))
             for entry in data["mangas"]:
-                manga = Manga(entry["title"], entry["source"], entry["chapters"], entry["last_read_chapter"])
-                self.tracked_mangas.append(manga)
-                self.tracked_mangas = sorted(self.tracked_mangas, key=lambda manga: manga.title)
+                if not entry["missing"]:
+                    manga = Manga(entry["title"], entry["source"], entry["chapters"], entry["last_read_chapter"])
+                    self.tracked_mangas.append(manga)
+                    self.tracked_mangas = sorted(self.tracked_mangas, key=lambda manga: manga.title)
 
     #### ACTIONS ####
 

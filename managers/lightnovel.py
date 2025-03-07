@@ -27,9 +27,10 @@ class LightnovelManager:
         if os.stat(TRACKED_LIGHTNOVELS_FILE).st_size != 0:
             data = json.load(open(TRACKED_LIGHTNOVELS_FILE, "r"))
             for entry in data["lightnovels"]:
-                lightnovel = Lightnovel(entry["title"], entry["chapters"], entry["last_read_chapter"])
-                self.tracked_lightnovels.append(lightnovel)
-                self.tracked_lightnovels = sorted(self.tracked_lightnovels, key=lambda lightnovel: lightnovel.title)
+                if not entry["missing"]:
+                    lightnovel = Lightnovel(entry["title"], entry["chapters"], entry["last_read_chapter"])
+                    self.tracked_lightnovels.append(lightnovel)
+                    self.tracked_lightnovels = sorted(self.tracked_lightnovels, key=lambda lightnovel: lightnovel.title)
 
     #### ACTIONS ####
 
